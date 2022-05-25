@@ -1,27 +1,58 @@
-from django.http import response
-from django.shortcuts import get_list_or_404, render
-
-from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.shortcuts import render
 from rest_framework.response import Response
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, DestroyAPIView
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.decorators import api_view
 
-from .serializers import *
+from .serializers import ProductSerializer
+from .models import Product
 
-class UserLoginView(RetrieveAPIView):
-    serializer_class = UserLoginSerializer
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        response = {
-            'sucess': 1,
-            'status_code': status.HTTP_200_OK,
-            'message': 'Login in succesfull',
-            'refresh': serializer.data['refresh'],
-            'token': serializer.data['access'],
+# Create your views here.
+class apiOverview(APIView):
+    def get(self, request):
+        api_urls = {
+            'List': '/product/list/',
+            'Detail view': '/product/detail/<init:id>',
+            'Create': '/product/create/',
+            'Update': '/product/update/<int:id>',
+            'Delete': '/product/delete/<int:id>'
         }
-        status_code = status.HTTP_200_OK
-        return Response(response, status=status_code)
+        return Response(api_urls)
+    
+class ShowAll(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+    
+class ViewProduct(APIView):
+    def get(self, request, pk):
+        product = Product.objects.get(id=pk)
+        serializer = ProductSerializer(product, many=False)
+        return Response(serializer.data)
+
+class CreateProduct(APIView):
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+        
+        return Response(serializer.data)
+    
+class UpdateProduct(APIView):
+    def put(self, request, pk):
+        product = Product.objects.get(id=pk)
+        serializer = ProductSerializer(instance=product, data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+        
+        return Response(serializer.data)
+    
+class DeleteProduct(APIView):
+    def get(self, request, pk):
+        product = Product.objects.get(id=pk)
+        product.delete()
+        
+        return Response('Deleted Successfully')

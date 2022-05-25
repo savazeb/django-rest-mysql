@@ -1,19 +1,13 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
-from .managers import CustomUserManager
 
-from django.contrib import admin
+# Create your models here.
 
-class CustomUser(AbstractUser):
-    username = None
-    email = models.EmailField(unique=True)
-
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
-
-    objects = CustomUserManager()
-
+class Product(models.Model):
+    name = models.CharField(max_length=200, null=False, blank=False)
+    category = models.CharField(max_length=100, null=False, blank=False)
+    price = models.DecimalField(max_digits=7, decimal_places=2)
+    description = models.TextField()
+    stars = models.IntegerField()
+    
     def __str__(self):
-        return self.email
-
-admin.site.register(CustomUser)
+        return self.name
